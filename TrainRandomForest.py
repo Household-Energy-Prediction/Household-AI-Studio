@@ -38,7 +38,7 @@ print(f"RMSE: {rmse:.4f}")
 print(f"R²: {r2:.4f}")
 
 # plot feature importance
-plt.figure(figsize=(8, 4))
+plt.figure(figsize = (8, 4))
 plt.barh(X.columns, rf.feature_importances_)
 plt.xlabel("Feature Importance")
 plt.title("Random Forest Feature Importance")

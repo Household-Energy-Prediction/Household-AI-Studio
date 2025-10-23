@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # load preprocessed dataset 
-df = pd.read_csv("data_with_datetime.csv", index_col="datetime", parse_dates = True)
+df = pd.read_csv("data_with_datetime.csv", index_col = "datetime", parse_dates = True)
 df = df.sample(frac = 0.05, random_state = 42)  # use 5% of the data
 
 # drop missing values 

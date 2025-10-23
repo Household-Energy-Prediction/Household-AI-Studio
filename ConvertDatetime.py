@@ -30,3 +30,10 @@ def convertDatetime(df):
     converted_df.to_csv("data_with_datetime.csv", index = True)
 
     return converted_df;
+
+if __name__ == "__main__":
+    import pandas as pd
+    df = pd.read_csv("household_power_consumption.csv/household_power_consumption.csv", sep=',')
+    cleaned_df = convertDatetime(df)
+    print("data_with_datetime.csv created successfully!")
+    print(cleaned_df.head())

@@ -6,8 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # load preprocessed dataset 
-df = pd.read_csv("data_with_datetime.csv", index_col="datetime", parse_dates=True)
-df = df.sample(frac=0.05, random_state=42)  # use 5% of the data
+df = pd.read_csv("data_with_datetime.csv", index_col="datetime", parse_dates = True)
+df = df.sample(frac = 0.05, random_state = 42)  # use 5% of the data
 
 # drop missing values 
 df = df.dropna()
@@ -18,10 +18,10 @@ X = df[["Global_reactive_power", "Voltage", "Global_intensity",
 y = df["Global_active_power"]
 
 # data split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
 
 # create + train Random Forest
-rf = RandomForestRegressor(n_estimators=200, max_depth=10, random_state=42)
+rf = RandomForestRegressor(n_estimators = 200, max_depth = 10, random_state = 42)
 rf.fit(X_train, y_train)
 
 # model pediction

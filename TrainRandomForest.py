@@ -13,7 +13,7 @@ df = df.sample(frac = 0.05, random_state = 42)  # use 5% of the data
 df = df.dropna()
 
 # features and target defined
-X = df[["Global_reactive_power", "Voltage", "Global_intensity",
+X = df[["Global_reactive_power", "Voltage",
         "Sub_metering_1", "Sub_metering_2", "Sub_metering_3"]]
 y = df["Global_active_power"]
 

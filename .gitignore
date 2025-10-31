@@ -207,6 +207,8 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+.idea
+darts_logs/
 
 # Main Data File
 household_power_consumption.csv

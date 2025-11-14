@@ -6,36 +6,41 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # load preprocessed dataset 
-df = pd.read_csv("data_with_datetime.csv", index_col = "datetime", parse_dates = True)
-df = df.sample(frac = 0.05, random_state = 42)  # use 5% of the data
+df = pd.read_csv("final_data.csv", index_col = "datetime", parse_dates = True)
 
-# drop missing values 
+# Drop missing values for consistency
 df = df.dropna()
 
-# features and target defined
-X = df[["Global_reactive_power", "Voltage",
-        "Sub_metering_1", "Sub_metering_2", "Sub_metering_3"]]
+# define features and target 
+X = df[["Voltage","Global_reactive_power", "Sub_metering_1", "Sub_metering_2", "Sub_metering_3"]]
 y = df["Global_active_power"]
 
-# data split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
+# split data 
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size = 0.2, random_state = 42
+)
 
-# create + train Random Forest
-rf = RandomForestRegressor(n_estimators = 200, max_depth = 10, random_state = 42)
+#  train random forest model
+rf = RandomForestRegressor(
+    n_estimators = 200,
+    max_depth = 12,
+    random_state = 42,
+    n_jobs = -1     # speeds up training
+)
+
 rf.fit(X_train, y_train)
 
-# model pediction
+# model predictions & evaluation
 y_pred = rf.predict(X_test)
 
-# performance evaluation
 mae = mean_absolute_error(y_test, y_pred)
 rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 r2 = r2_score(y_test, y_pred)
 
-print("\n Random Forest Model Result")
+print("\nRandom Forest Model Results")
 print(f"MAE: {mae:.4f}")
 print(f"RMSE: {rmse:.4f}")
-print(f"R²: {r2:.4f}")
+print(f"R²:  {r2:.4f}")
 
 # plot feature importance
 plt.figure(figsize = (8, 4))

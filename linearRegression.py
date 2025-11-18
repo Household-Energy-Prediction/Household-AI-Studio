@@ -46,17 +46,16 @@ print(f"RMSE: {rmse:.4f}")
 print(f"R²:   {r2:.4f}")
 
 
-# coefficients
+# Coefficient Plot (Feature Influence)
 coef_df = pd.DataFrame({
     "Feature": X.columns,
     "Coefficient": lin_reg.coef_
 })
 
-# Sort by absolute value (importance)
+# Sort by absolute magnitude of coefficient
 coef_df["AbsCoef"] = coef_df["Coefficient"].abs()
 coef_df = coef_df.sort_values(by="AbsCoef", ascending=True)
 
-# Plot 
 plt.figure(figsize=(12, 7))
 sns.set(style="white")
 
@@ -64,68 +63,70 @@ ax = sns.barplot(
     x="Coefficient",
     y="Feature",
     data=coef_df,
-    hue="Feature",
     palette="Blues",
-    legend=False,     # Prevents extra legend box
     linewidth=1,
     edgecolor="black"
 )
 
-
-# Add value labels
+# label values
 for i, v in enumerate(coef_df["Coefficient"]):
-    ax.text(
-        v + (0.02 if v >= 0 else -0.02),   # offset for direction
-        i,
-        f"{v:.3f}",
-        color="black",
-        va="center",
-        fontsize=11,
-        fontweight="bold"
-    )
+    offset = 0.03 if v >= 0 else -0.03
+    ax.text(v + offset, i, f"{v:.3f}", fontsize=11, va="center")
 
-# Title & labels
 plt.title("Linear Regression Feature Influence (Scaled)", fontsize=20, weight="bold", pad=20)
-plt.xlabel("Coefficient Value", fontsize=14)
-plt.ylabel("Feature", fontsize=14)
-
-# Grid lines
-ax.xaxis.grid(True, linestyle='--', alpha=0.4)
-ax.yaxis.grid(False)
-
+plt.xlabel("Coefficient Value")
+plt.ylabel("Feature")
+ax.xaxis.grid(True, linestyle="--", alpha=0.4)
 plt.tight_layout()
 plt.show()
 
 
-# Actual vs Predicted Plot
+# Actual vs Predicted
 plt.figure(figsize=(8, 8))
-sns.scatterplot(x=y_test[:10000], y=y_pred[:10000], alpha=0.3)
-plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], 
-         'r--', label="Perfect Fit")
+sns.scatterplot(
+    x=y_test[:10000],
+    y=y_pred[:10000],
+    alpha=0.3
+)
+
+# perfect fit line
+low = min(y_test[:10000].min(), y_pred[:10000].min())
+high = max(y_test[:10000].max(), y_pred[:10000].max())
+
+plt.plot([low, high], [low, high], "r--", label="Perfect Fit Line")
+
 plt.xlabel("Actual Global Active Power")
 plt.ylabel("Predicted Global Active Power")
-plt.title("Linear Regression: Actual vs Predicted")
-plt.grid(True, linestyle='--', alpha=0.4)
+plt.title("Linear Regression: Actual vs Predicted (Time-Aware Split)")
+plt.grid(True, linestyle="--", alpha=0.4)
 plt.legend()
 plt.tight_layout()
 plt.show()
 
+
 # Residuals vs Predictions
-residuals = y_test - y_pred
+residuals = y_test.values - y_pred
 
 plt.figure(figsize=(10, 5))
-sns.scatterplot(x=y_pred[:20000], y=residuals[:20000], alpha=0.3)
-plt.axhline(0, color='red', linestyle='--')
+sns.scatterplot(
+    x=y_pred[:20000],
+    y=residuals[:20000],
+    alpha=0.3
+)
+
+plt.axhline(0, color="red", linestyle="--")
 plt.xlabel("Predicted Values")
 plt.ylabel("Residuals")
-plt.title("Linear Regression Residuals vs Predictions")
-plt.grid(True, linestyle='--', alpha=0.4)
+plt.title("Linear Regression Residuals vs Predictions (Time-Aware Split)")
+plt.grid(True, linestyle="--", alpha=0.4)
 plt.tight_layout()
 plt.show()
+
 
 # Residual Distribution
 plt.figure(figsize=(10, 5))
 sns.histplot(residuals, bins=50, kde=True, color="steelblue")
+
 plt.title("Linear Regression Residual Distribution")
 plt.xlabel("Residual")
 plt.ylabel("Frequency")

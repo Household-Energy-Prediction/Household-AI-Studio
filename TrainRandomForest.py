@@ -50,93 +50,98 @@ print(f"RMSE: {rmse:.4f}")
 print(f"R²:   {r2:.4f}")
 
 
-
-# Actual vs Predicted Plot
+# Actual vs Predicted Plot (Time-Aware)
 plt.figure(figsize=(8, 8))
 sns.set(style="white")
 
+# sample 5,000 points for readability
 sample_idx = np.random.choice(len(y_test), size=5000, replace=False)
 
+y_test_sample = y_test.iloc[sample_idx]
+y_pred_sample = y_pred[sample_idx]
+
 plt.scatter(
-    y_test.iloc[sample_idx],
-    y_pred[sample_idx],
+    y_test_sample,
+    y_pred_sample,
     alpha=0.3,
-    edgecolor='none',
-    color="#1f77b4"
+    color="#1f77b4",
+    edgecolor="none"
 )
 
-min_val = min(y_test.min(), y_pred.min())
-max_val = max(y_test.max(), y_pred.max())
-plt.plot([min_val, max_val], [min_val, max_val], 'r--')
+# Perfect fit line
+low = min(y_test_sample.min(), y_pred_sample.min())
+high = max(y_test_sample.max(), y_pred_sample.max())
+plt.plot([low, high], [low, high], "r--", label="Perfect Fit Line")
 
-plt.title("Random Forest: Actual vs Predicted", fontsize=18, weight="bold")
+plt.title("Random Forest: Actual vs Predicted (Time-Aware Split)",
+          fontsize=18, weight="bold")
 plt.xlabel("Actual Global Active Power")
 plt.ylabel("Predicted Global Active Power")
-plt.grid(True, linestyle='--', alpha=0.4)
+plt.grid(True, linestyle="--", alpha=0.4)
+plt.legend()
 plt.tight_layout()
 plt.show()
 
-# Residual Plot
-residuals = y_test - y_pred
+
+# Residuals vs Predictions
+residuals = y_test.values - y_pred
 
 plt.figure(figsize=(10, 5))
 sns.scatterplot(
-    x=y_pred,
-    y=residuals,
-    alpha=0.2,
+    x=y_pred[:20000],     # limit for readability
+    y=residuals[:20000],
+    alpha=0.25,
     color="#1f77b4"
 )
 
 plt.axhline(0, color="red", linestyle="--")
-plt.title("Random Forest Residuals vs Predictions", fontsize=18, weight="bold")
+plt.title("Random Forest Residuals vs Predictions (Time-Aware Split)",
+          fontsize=18, weight="bold")
 plt.xlabel("Predicted Values")
 plt.ylabel("Residuals (Actual - Predicted)")
-plt.grid(True, linestyle='--', alpha=0.4)
+plt.grid(True, linestyle="--", alpha=0.4)
 plt.tight_layout()
 plt.show()
 
-#  Residual Histogram
-plt.figure(figsize=(8, 5))
+
+# Residual Distribution
+plt.figure(figsize=(10, 5))
 sns.histplot(residuals, bins=50, kde=True, color="#1f77b4")
 
 plt.title("Random Forest Residual Distribution", fontsize=18, weight="bold")
 plt.xlabel("Residual")
 plt.ylabel("Frequency")
-plt.grid(True, linestyle='--', alpha=0.4)
+plt.grid(True, linestyle="--", alpha=0.4)
 plt.tight_layout()
 plt.show()
 
 
-
-# Sort features from least → most important
+# Feature Importance (sorted, professional style)
 importances = pd.Series(rf.feature_importances_, index=X.columns).sort_values()
 
 plt.figure(figsize=(12, 7))
 sns.set(style="white")
 
-# Barplot
 ax = sns.barplot(
     x=importances.values,
     y=importances.index,
-    palette="Blues",     # darkest = most important
+    palette="Blues",
     linewidth=1,
     edgecolor="black"
 )
 
-# Value labels
+# value labels
 for i, v in enumerate(importances.values):
     ax.text(v + 0.01, i, f"{v:.3f}",
-            color="black", va="center",
-            fontsize=11, fontweight="bold")
+            fontsize=11, va="center",
+            color="black", fontweight="bold")
 
-# Titles & labels
-plt.title("Random Forest Feature Importance (Tuned)", fontsize=20, weight="bold", pad=20)
-plt.xlabel("Feature Importance", fontsize=14)
-plt.ylabel("Feature", fontsize=14)
+plt.title("Random Forest Feature Importance (Tuned, Time-Aware)",
+          fontsize=20, weight="bold", pad=20)
+plt.xlabel("Feature Importance")
+plt.ylabel("Feature")
 
-# Cleaner grid
 ax.xaxis.grid(True, linestyle="--", alpha=0.4)
-ax.yaxis.grid(False)
-
 plt.tight_layout()
 plt.show()
+

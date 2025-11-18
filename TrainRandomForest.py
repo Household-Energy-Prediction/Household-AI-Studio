@@ -1,51 +1,54 @@
 import pandas as pd
 import numpy as np
 import seaborn as sns
-from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-import matplotlib.pyplot as plt
 
-# load cleaned dataset
-df = pd.read_csv("final_data.csv", index_col = "datetime", parse_dates = True)
-
-# drop missing values for consistency
+# Load cleaned dataset
+df = pd.read_csv("final_data.csv", index_col="datetime", parse_dates=True)
 df = df.dropna()
 
-# define features and target 
+# Sort chronologically to avoid data leakage
+df = df.sort_index()
+
+# Define features and target
 X = df[["Voltage", "Global_reactive_power",
         "Sub_metering_1", "Sub_metering_2", "Sub_metering_3"]]
-
 y = df["Global_active_power"]
 
-# Split data
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size = 0.2, random_state = 42
-)
+# Time-based split (80% train, 20% test)
+split_idx = int(len(df) * 0.8)
+X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
+y_train, y_test = y.iloc[:split_idx], y.iloc[split_idx:]
 
-# fine-tuned Random Forest Model
+print(f"Train range: {X_train.index.min()} → {X_train.index.max()}")
+print(f"Test range:  {X_test.index.min()} → {X_test.index.max()}")
+print(f"Train size: {len(X_train)}, Test size: {len(X_test)}")
+
+# Random Forest with tuned parameters
 rf = RandomForestRegressor(
-    n_estimators = 400,      # more trees = more stable
-    max_depth = 16,          # deeper trees
-    min_samples_leaf = 2,    # prevents overfitting
-    max_features = "sqrt",   # improves generalization
-    random_state = 42,
-    n_jobs = -1
+    n_estimators=400,
+    max_depth=16,
+    min_samples_leaf=2,
+    max_features="sqrt",
+    random_state=42,
+    n_jobs=-1
 )
 
 rf.fit(X_train, y_train)
-
-# predictions & evaluation
 y_pred = rf.predict(X_test)
 
+# Evaluation
 mae = mean_absolute_error(y_test, y_pred)
 rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 r2 = r2_score(y_test, y_pred)
 
-print("\nFine-Tuned Random Forest Model Results")
+print("\nRandom Forest (Time-Aware Split) Results")
 print(f"MAE:  {mae:.4f}")
 print(f"RMSE: {rmse:.4f}")
 print(f"R²:   {r2:.4f}")
+
 
 
 # Actual vs Predicted Plot

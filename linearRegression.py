@@ -3,53 +3,48 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-# load final dataset
-df = pd.read_csv("final_data.csv", index_col = "datetime", parse_dates = True)
+# Load final dataset
+df = pd.read_csv("final_data.csv", index_col="datetime", parse_dates=True)
 df = df.dropna()
+df = df.sort_index()  # critical for forecasting
 
-# features and target
-X = df[["Voltage",
-        "Global_reactive_power",
-        "Sub_metering_1",
-        "Sub_metering_2",
-        "Sub_metering_3"]]
-
+# Features & target
+X = df[["Voltage", "Global_reactive_power",
+        "Sub_metering_1", "Sub_metering_2", "Sub_metering_3"]]
 y = df["Global_active_power"]
 
-# split
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size = 0.2, random_state = 42
-)
+# Time split (not random)
+split_idx = int(len(df) * 0.8)
+X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
+y_train, y_test = y.iloc[:split_idx], y.iloc[split_idx:]
 
-print("Train shape:", X_train.shape)
-print("Test shape:", X_test.shape)
+print(f"Train size: {len(X_train)}, Test size: {len(X_test)}")
 
-# scale features
+# Scale inputs
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-# train LR
+# Train LR
 lin_reg = LinearRegression()
 lin_reg.fit(X_train_scaled, y_train)
 
-# predict
+# Predict
 y_pred = lin_reg.predict(X_test_scaled)
 
-# evaluate
-mse = mean_squared_error(y_test, y_pred)
-rmse = np.sqrt(mse)
+# Evaluation
 mae = mean_absolute_error(y_test, y_pred)
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 r2 = r2_score(y_test, y_pred)
 
-print("\nLinear Regression Results (Scaled)")
+print("\nLinear Regression (Time-Aware Split) Results")
 print(f"MAE:  {mae:.4f}")
 print(f"RMSE: {rmse:.4f}")
 print(f"R²:   {r2:.4f}")
+
 
 # coefficients
 coef_df = pd.DataFrame({

@@ -101,3 +101,39 @@ ax.yaxis.grid(False)
 plt.tight_layout()
 plt.show()
 
+
+# Actual vs Predicted Plot
+plt.figure(figsize=(8, 8))
+sns.scatterplot(x=y_test[:10000], y=y_pred[:10000], alpha=0.3)
+plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], 
+         'r--', label="Perfect Fit")
+plt.xlabel("Actual Global Active Power")
+plt.ylabel("Predicted Global Active Power")
+plt.title("Linear Regression: Actual vs Predicted")
+plt.grid(True, linestyle='--', alpha=0.4)
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+# Residuals vs Predictions
+residuals = y_test - y_pred
+
+plt.figure(figsize=(10, 5))
+sns.scatterplot(x=y_pred[:20000], y=residuals[:20000], alpha=0.3)
+plt.axhline(0, color='red', linestyle='--')
+plt.xlabel("Predicted Values")
+plt.ylabel("Residuals")
+plt.title("Linear Regression Residuals vs Predictions")
+plt.grid(True, linestyle='--', alpha=0.4)
+plt.tight_layout()
+plt.show()
+
+# Residual Distribution
+plt.figure(figsize=(10, 5))
+sns.histplot(residuals, bins=50, kde=True, color="steelblue")
+plt.title("Linear Regression Residual Distribution")
+plt.xlabel("Residual")
+plt.ylabel("Frequency")
+plt.tight_layout()
+plt.show()
+

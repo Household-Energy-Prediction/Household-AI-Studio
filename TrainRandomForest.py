@@ -3,6 +3,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import numpy as np
+import seaborn as sns
 import matplotlib.pyplot as plt
 
 # load cleaned dataset
@@ -46,11 +47,35 @@ print(f"MAE:  {mae:.4f}")
 print(f"RMSE: {rmse:.4f}")
 print(f"R²:   {r2:.4f}")
 
-# feature importance plot
-plt.figure(figsize = (8, 4))
-plt.barh(X.columns, rf.feature_importances_)
-plt.xlabel("Feature Importance")
-plt.title("Random Forest Feature Importance (Tuned)")
+# Sort features from least → most important
+importances = pd.Series(rf.feature_importances_, index=X.columns).sort_values()
+
+plt.figure(figsize=(12, 7))
+sns.set(style="white")
+
+# Barplot
+ax = sns.barplot(
+    x=importances.values,
+    y=importances.index,
+    palette="Blues",     # darkest = most important
+    linewidth=1,
+    edgecolor="black"
+)
+
+# Value labels
+for i, v in enumerate(importances.values):
+    ax.text(v + 0.01, i, f"{v:.3f}",
+            color="black", va="center",
+            fontsize=11, fontweight="bold")
+
+# Titles & labels
+plt.title("Random Forest Feature Importance (Tuned)", fontsize=20, weight="bold", pad=20)
+plt.xlabel("Feature Importance", fontsize=14)
+plt.ylabel("Feature", fontsize=14)
+
+# Cleaner grid
+ax.xaxis.grid(True, linestyle="--", alpha=0.4)
+ax.yaxis.grid(False)
+
 plt.tight_layout()
 plt.show()
-

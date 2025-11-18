@@ -1,9 +1,9 @@
 import pandas as pd
+import numpy as np
+import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-import numpy as np
-import seaborn as sns
 import matplotlib.pyplot as plt
 
 # load cleaned dataset
@@ -46,6 +46,64 @@ print("\nFine-Tuned Random Forest Model Results")
 print(f"MAE:  {mae:.4f}")
 print(f"RMSE: {rmse:.4f}")
 print(f"R²:   {r2:.4f}")
+
+
+# Actual vs Predicted Plot
+plt.figure(figsize=(8, 8))
+sns.set(style="white")
+
+sample_idx = np.random.choice(len(y_test), size=5000, replace=False)
+
+plt.scatter(
+    y_test.iloc[sample_idx],
+    y_pred[sample_idx],
+    alpha=0.3,
+    edgecolor='none',
+    color="#1f77b4"
+)
+
+min_val = min(y_test.min(), y_pred.min())
+max_val = max(y_test.max(), y_pred.max())
+plt.plot([min_val, max_val], [min_val, max_val], 'r--')
+
+plt.title("Random Forest: Actual vs Predicted", fontsize=18, weight="bold")
+plt.xlabel("Actual Global Active Power")
+plt.ylabel("Predicted Global Active Power")
+plt.grid(True, linestyle='--', alpha=0.4)
+plt.tight_layout()
+plt.show()
+
+# Residual Plot
+residuals = y_test - y_pred
+
+plt.figure(figsize=(10, 5))
+sns.scatterplot(
+    x=y_pred,
+    y=residuals,
+    alpha=0.2,
+    color="#1f77b4"
+)
+
+plt.axhline(0, color="red", linestyle="--")
+plt.title("Random Forest Residuals vs Predictions", fontsize=18, weight="bold")
+plt.xlabel("Predicted Values")
+plt.ylabel("Residuals (Actual - Predicted)")
+plt.grid(True, linestyle='--', alpha=0.4)
+plt.tight_layout()
+plt.show()
+
+#  Residual Histogram
+plt.figure(figsize=(8, 5))
+sns.histplot(residuals, bins=50, kde=True, color="#1f77b4")
+
+plt.title("Random Forest Residual Distribution", fontsize=18, weight="bold")
+plt.xlabel("Residual")
+plt.ylabel("Frequency")
+plt.grid(True, linestyle='--', alpha=0.4)
+plt.tight_layout()
+plt.show()
+
+
 
 # Sort features from least → most important
 importances = pd.Series(rf.feature_importances_, index=X.columns).sort_values()

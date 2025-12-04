@@ -22,7 +22,8 @@ We compare classical ML models and time-series approaches across **minute-level*
 
 ### Data
 - `household_power_consumption.csv.zip`  
-  Zipped raw dataset. Unzip into the project root to run the pipeline.
+- Data from: https://archive.ics.uci.edu/dataset/235/individual+household+electric+power+consumption
+- Zipped raw dataset. Unzip into the project root to run the pipeline.
 
 ### Preprocessing / Feature Engineering
 - `ConvertDatetime.py` - creates a cleaned dataset with a datetime index
@@ -32,7 +33,7 @@ We compare classical ML models and time-series approaches across **minute-level*
 - `Resample.py` - resampling utilities
 - `ResampleHourly.py` - generates **hourly averaged** dataset
 - `AddTimeFeatures.py` - adds:
-  - raw time parts: hour, dayofweek, month, year, is_weekend
+  - new time based features: hour, dayofweek, month, year, is_weekend
   - cyclical encodings: sin/cos for hour/day/month
 
 ### Modeling

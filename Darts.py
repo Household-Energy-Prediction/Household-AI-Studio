@@ -4,10 +4,10 @@ import os
 import matplotlib.pyplot as plt
 import torch
 from darts import TimeSeries
-from darts.metrics import mape
+from darts.metrics import mape, r2_score
+from darts.models.forecasting.nbeats import NBEATSModel
 from darts.metrics import mae
 from darts.metrics import rmse
-from darts.models import NBEATSModel
 from darts.utils.model_selection import train_test_split
 from pytorch_lightning.callbacks import EarlyStopping
 
@@ -38,46 +38,53 @@ target_series = TimeSeries.from_series(y)
 train, val = train_test_split(target_series, test_size=0.2)
 train_cov, val_cov = train_test_split(covariates, test_size=0.2)
 
-# Define NBEATSModel
-model = NBEATSModel(
-    input_chunk_length=6,
-    output_chunk_length=6,
-    n_epochs=100,
-    activation='LeakyReLU',
-    optimizer_kwargs={'lr': 1e-6},
-    pl_trainer_kwargs={
-        "accelerator": "gpu",
-        "devices": [0],
-        "callbacks": [EarlyStopping(monitor='val_loss', patience=5)],
-    },
-)
+# Use grid search to find the best_params
+# param_grid = {
+#     "input_chunk_length": [6, 12, 18],
+#     "output_chunk_length": [1, 3, 6],
+#     "n_epochs": [100],
+#     "activation": ["ReLU", "LeakyReLU"],
+#     "optimizer_kwargs": [{"lr": 1e-4}, {"lr": 1e-3}],
+# }
+#
+# best_model, best_params, best_score = NBEATSModel.gridsearch(
+#     parameters=param_grid,
+#     series=train,
+#     val_series=val,
+#     past_covariates=covariates,
+#     metric=rmse,
+# )
+# Best Params
+# {'input_chunk_length': 6, 'output_chunk_length': 1, 'n_epochs': 100, 'activation': 'LeakyReLU', 'optimizer_kwargs': {'lr': 0.0001}}
 
-# Fit using past_covariates and plot result
-model.fit(series=train, past_covariates=covariates, val_series=val, val_past_covariates=val_cov)
-forecast = model.predict(n=len(val), past_covariates=covariates)
-val[-len(val):].plot(label="Actual")
-forecast.plot(label="Forecast")
+train, rest = train_test_split(target_series, test_size=0.3)
+val, test = train_test_split(rest, test_size=0.03)
+train_cov, rest_cov = train_test_split(covariates, test_size=0.3)
+val_cov, test_cov = train_test_split(rest_cov, test_size=0.03)
+
+best_params = {'input_chunk_length': 6, 'output_chunk_length': 1, 'n_epochs': 100,
+               'activation': 'LeakyReLU', 'optimizer_kwargs': {'lr': 0.0001}}
+
+# Refit best model on train+val
+final_train = train.append(val)
+final_train_cov = train_cov.append(val_cov)
+best_model = NBEATSModel(**best_params)
+best_model.fit(series=final_train, past_covariates=covariates)  # Can use covariates = full
+
+# Forecast and evaluate on test set only!
+n_forecast = len(test)
+history_for_prediction = final_train
+test_forecast = best_model.predict(n=n_forecast, series=history_for_prediction, past_covariates=covariates)
+
+# Plot
+test.plot(label="Actual - Test")
+test_forecast.plot(label="Forecast - Test")
 plt.legend()
 plt.show()
 
-print(mape(val[-len(val):], forecast[-len(val):]))
-print(rmse(val[-len(val):], forecast[-len(val):]))
-print(mae(val[-len(val):], forecast[-len(val):]))
-# res = model.residuals(
-#     series=val,
-#     past_covariates=val_cov if 'val_cov' in locals() else None,
-#     forecast_horizon=1,
-#     retrain=False,
-#     last_points_only=True,  # gives you a Darts TimeSeries for the forecast time points
-#     verbose=False,
-# )
-#
-# print("\n=== Residual diagnostics ===")
-# print("res type:", type(res))
-# print("res values shape:", res.values().shape)
-# print("res index:", res.time_index[:5], "...", res.time_index[-5:])
-# print("First 10 residuals:", res.values()[:10].flatten())
-#
-# # Optionally, measure score
-# mape_val = mape(val, res + val)  # since res = target - forecast  => forecast = target - res
-# print(f"MAPE on val set (from residuals): {mape_val:.2f}%")
+print("On TRUE holdout test set:")
+print("MAPE: ", mape(test, test_forecast))
+print("RMSE: ", rmse(test, test_forecast))
+print("MAE: ", mae(test, test_forecast))
+print("R2: ", r2_score(test, test_forecast))
+
